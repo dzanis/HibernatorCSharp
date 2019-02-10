@@ -91,7 +91,7 @@ namespace Hibernator
             notifyIcon.Visible = false;
         }
 
-
+     
         private void setIconNumber(int number)
         {
             number = !timerinvert ? number : minutesOff - number;
@@ -204,9 +204,13 @@ namespace Hibernator
             const int IDNO = 7;
             const int BN_CLICKED = 0;
 
-            Thread.Sleep(1000);// ожидание до вызова окна сообщения
-
-            IntPtr hwndMsgBox = FindWindow(null, "HibernateConfirm");
+            IntPtr hwndMsgBox = (IntPtr)null;
+            while(hwndMsgBox == (IntPtr)null)// ожидание до вызова окна сообщения
+            {
+                hwndMsgBox = FindWindow(null, "HibernateConfirm");
+                Thread.Sleep(100);
+            }
+                
             IntPtr hwndButton = FindWindowEx(hwndMsgBox, (IntPtr)0, "Button", null);
             const int SW_HIDE = 0;
             ShowWindow(hwndButton, SW_HIDE);
