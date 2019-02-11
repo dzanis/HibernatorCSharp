@@ -163,6 +163,7 @@ namespace Hibernator
 
         private Thread myThread;
         private MainForm main;
+        private bool run;
 
         public Hibernator(MainForm main)
         {
@@ -171,6 +172,7 @@ namespace Hibernator
 
         public void Start()
         {
+            run = true;
             myThread = new Thread(thread_func); //Создаем новый объект потока (Thread)
             myThread.IsBackground = true;// что-бы поток закрывался вместе с приложением
             myThread.Start(); //запускаем поток
@@ -179,6 +181,7 @@ namespace Hibernator
         /// остановить поток, например при закрытии приложения
         public void Stop()
         {
+            run = false;
             myThread.Abort();
             myThread.Join();
             myThread = null;
@@ -244,8 +247,8 @@ namespace Hibernator
 
         public void thread_func()
         {
-            Log.Write("thread_func");
-            while (true)
+            Log.Write("thread_func");           
+            while (run)
             {
                 int lastInputTime = GetLastInputTime() / 60;// convert sec to min
                 main.notyfyiconUpdate(lastInputTime);//обновление иконки в трее
@@ -263,15 +266,14 @@ namespace Hibernator
                     {
                         Log.Write("HibernateConfirm != DialogResult.Yes");
                         thread.Abort();
-                        thread.Join();
                         thread = null;
                         main.PowerModesResume = false;
                         continue;
                     }
                     Log.Write("HibernateConfirm == DialogResult.Yes");
                     thread.Abort();
-                    thread.Join();
                     thread = null;
+                    run = false;
                     Thread.Sleep(1000);
                     System.Diagnostics.Process.Start("CMD.exe", "/C shutdown -h");
                     //System.Diagnostics.Process.Start("CMD.exe", "/C "); // test
@@ -280,7 +282,7 @@ namespace Hibernator
                 Thread.Sleep(1000);
 
             }
-
+            Log.Write("thread_func end");
         }
 
 
