@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using System.Threading; //Именно это пространство имен поддерживает многопоточность
 using Microsoft.Win32;
+using System.IO;
 
 namespace Hibernator
 {
@@ -41,6 +42,8 @@ namespace Hibernator
             // load settings
             timerinvert = Properties.Settings.Default.timerinvert;
             minutesOff = Properties.Settings.Default.minutesOff;
+
+            Log.Write("MainForm");
 
         }
 
@@ -129,7 +132,7 @@ namespace Hibernator
             Properties.Settings.Default.Save();
             // останавливаю поток гибернатора
             hibernator.Stop();
-
+            Log.Write("ApplicationExit");
         }
 
 
@@ -139,13 +142,15 @@ namespace Hibernator
             switch (e.Mode)
             {
                 case PowerModes.Resume:
+                    Log.Write("PowerModes.Resume");
                     //MessageBox.Show("PowerModes.Resume");
                     PowerModesResume = true;
-                    hibernator.Start();
+                    hibernator.Start();                   
                     break;
                 case PowerModes.Suspend:
+                    Log.Write("PowerModes.Suspend");
                     //MessageBox.Show("PowerModes.Suspend");
-                    hibernator.Stop();// не уверен нужно ли останавливать поток перед гибернацией
+                    hibernator.Stop();// не уверен нужно ли останавливать поток перед гибернацией                   
                     break;
             }
         }
@@ -199,6 +204,7 @@ namespace Hibernator
         /// ожидание отмены пред гибернизацией с обратным отсчётом на кнопке
         public void message_thread_func()
         {
+            Log.Write("message_thread_func");
             const int WM_COMMAND = 0x0111;
             const int IDYES = 6;
             const int IDNO = 7;
@@ -232,10 +238,13 @@ namespace Hibernator
                 SendMessageW(hwndMsgBox, WM_COMMAND, (IntPtr)(IDYES | (BN_CLICKED << 16)), hwndButton);
             }
 
+            Log.Write("message_thread_func  end");
+
         }
 
         public void thread_func()
         {
+            Log.Write("thread_func");
             while (true)
             {
                 int lastInputTime = GetLastInputTime() / 60;// convert sec to min
@@ -243,6 +252,7 @@ namespace Hibernator
                 // form1.PowerModesResume нужен что-бы запустить таймер  выключения при выходе из гибернации
                 if (lastInputTime >= main.minutesOff || main.PowerModesResume)
                 {
+                    Log.Write("lastInputTime >= main.minutesOff");
                     Thread thread = new Thread(message_thread_func);
                     thread.IsBackground = true;
                     thread.Start();
@@ -251,12 +261,14 @@ namespace Hibernator
                         "HibernateConfirm", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2,
                         MessageBoxOptions.ServiceNotification) != DialogResult.Yes)
                     {
+                        Log.Write("HibernateConfirm != DialogResult.Yes");
                         thread.Abort();
                         thread.Join();
                         thread = null;
                         main.PowerModesResume = false;
                         continue;
                     }
+                    Log.Write("HibernateConfirm == DialogResult.Yes");
                     thread.Abort();
                     thread.Join();
                     thread = null;
@@ -268,6 +280,7 @@ namespace Hibernator
                 Thread.Sleep(1000);
 
             }
+
         }
 
 
@@ -300,5 +313,20 @@ namespace Hibernator
             return ((idleTime > 0) ? (idleTime / 1000) : idleTime);// millisec to sec
         }
 
+    }
+
+    public class Log
+    {
+        private static object sync = new object();
+        public static void Write(string msg)
+        {
+
+            string filename = string.Format("log_{0:dd.MM.yyy}.txt", DateTime.Now);
+            lock (sync)
+            {
+                File.AppendAllText(filename, string.Format("{0:HH:mm:ss.ms} : {1}\n", DateTime.Now, msg));
+            }
+
+        }
     }
 }
