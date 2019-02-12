@@ -258,7 +258,7 @@ namespace Hibernator
                     Thread thread = new Thread(message_thread_func);
                     thread.IsBackground = true;
                     thread.Start();
-
+                    Form fullWindow = CreateFullscreenWindow();// белое окно на весь экран
                     if (MessageBox.Show("Move mouse or press any key \nto interrupt the hibernation ",
                         "HibernateConfirm", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2,
                         MessageBoxOptions.ServiceNotification) != DialogResult.Yes)
@@ -267,9 +267,11 @@ namespace Hibernator
                         thread.Abort();
                         thread = null;
                         main.PowerModesResume = false;
+                        fullWindow.Dispose();
                         continue;
                     }
                     Log.Write("HibernateConfirm == DialogResult.Yes");
+                    fullWindow.Dispose();
                     thread.Abort();
                     thread = null;
                     run = false;
@@ -284,6 +286,15 @@ namespace Hibernator
             Log.Write("thread_func end");
         }
 
+        private Form CreateFullscreenWindow()
+        {
+            Form f = new Form();
+            f.FormBorderStyle = FormBorderStyle.None;
+            f.WindowState = FormWindowState.Maximized;
+            f.Focus();
+            f.Show();
+            return f;
+        }
 
         [DllImport("User32.dll")]
         private static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
