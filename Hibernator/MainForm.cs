@@ -291,7 +291,7 @@ namespace Hibernator
             Form f = new Form();
             f.FormBorderStyle = FormBorderStyle.None;
             f.WindowState = FormWindowState.Maximized;
-            f.Focus();
+            f.TopMost = true;
             f.Show();
             return f;
         }
