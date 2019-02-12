@@ -22,41 +22,5 @@ namespace Hibernator.Properties {
                 return defaultInstance;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool timerinvert {
-            get {
-                return ((bool)(this["timerinvert"]));
-            }
-            set {
-                this["timerinvert"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("30")]
-        public int minutesOff {
-            get {
-                return ((int)(this["minutesOff"]));
-            }
-            set {
-                this["minutesOff"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool firstStart {
-            get {
-                return ((bool)(this["firstStart"]));
-            }
-            set {
-                this["firstStart"] = value;
-            }
-        }
     }
 }

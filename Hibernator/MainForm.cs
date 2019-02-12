@@ -11,8 +11,8 @@ namespace Hibernator
 
     public partial class MainForm : Form
     {
-
-        public int minutesOff = 30;//через сколько минут выключить, от 1 до 99 минут
+        
+        public byte minutesOff = 30;//через сколько минут выключить, от 1 до 99 минут
         public bool timerinvert = false;//сколько минут нет активности или сколько осталось до гибернации
         public bool PowerModesResume = false;// будет true при выходе из гибернации
 
@@ -22,16 +22,16 @@ namespace Hibernator
         public MainForm()
         {
             InitializeComponent();
-            Text = "Hibernator 2019.02.10";
+            Text = "Hibernator 2019.02.12";
             this.StartPosition = FormStartPosition.CenterScreen;
             SystemEvents.PowerModeChanged += OnPowerChange;
             Application.ApplicationExit += new EventHandler(ApplicationExit);
-
-            if (Properties.Settings.Default.firstStart)
+        
+            if(!Settings.load())
             {   // если самый первый старт приложения
-                Properties.Settings.Default.firstStart = false;
-                Properties.Settings.Default.Save();
-                Properties.Settings.Default.Upgrade();
+                Settings.timerinvert = timerinvert;
+                Settings.minutesOff = minutesOff;
+                Settings.save();
             }
             else
             {   // если не первый старт приложения то запуск в свёрнутом виде
@@ -40,9 +40,8 @@ namespace Hibernator
             }
 
             // load settings
-            timerinvert = Properties.Settings.Default.timerinvert;
-            minutesOff = Properties.Settings.Default.minutesOff;
-
+            minutesOff = Settings.minutesOff;
+            timerinvert = Settings.timerinvert;
             Log.Write("MainForm");
 
         }
@@ -82,7 +81,7 @@ namespace Hibernator
 
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
-            minutesOff = trackBar1.Value;
+            minutesOff = (byte)trackBar1.Value;
             label1.Text = String.Format("minutesOff {0}", minutesOff);
             label2.Text = String.Format(textInfo, minutesOff);
         }
@@ -127,9 +126,9 @@ namespace Hibernator
         void ApplicationExit(object sender, EventArgs e)
         {
             // Сохраняем переменные. 
-            Properties.Settings.Default.timerinvert = timerinvert;
-            Properties.Settings.Default.minutesOff = minutesOff;
-            Properties.Settings.Default.Save();
+            Settings.timerinvert = timerinvert;
+            Settings.minutesOff = minutesOff;
+            Settings.save();
             // останавливаю поток гибернатора
             hibernator.Stop();
             Log.Write("ApplicationExit");
@@ -331,4 +330,35 @@ namespace Hibernator
 
         }
     }
+
+    public class Settings
+    {
+        public static byte minutesOff;//через сколько минут выключить, от 1 до 99 минут
+        public static bool timerinvert;//сколько минут нет активности или сколько осталось до гибернации
+
+        public static void save()
+        {
+            using (BinaryWriter writer = new BinaryWriter(File.Open("settings.dat", FileMode.OpenOrCreate)))
+            {
+                writer.Write(minutesOff);
+                writer.Write(timerinvert);
+            }
+        }
+
+        /// если файл успешно прочитан то вернёт true 
+        public static bool load()
+        {           
+            if(File.Exists("settings.dat"))
+            {
+                using (BinaryReader reader = new BinaryReader(File.Open("settings.dat", FileMode.Open)))
+                {
+                    minutesOff = reader.ReadByte();
+                    timerinvert = reader.ReadBoolean();
+                }                
+                return true;
+            }
+            return false;
+        }
+    }
+
 }
