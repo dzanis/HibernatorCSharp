@@ -22,7 +22,7 @@ namespace Hibernator
         public MainForm()
         {
             InitializeComponent();
-            Text = "Hibernator 2019.02.12";
+            Text = "Hibernator 2019.02.13";
             this.StartPosition = FormStartPosition.CenterScreen;
             SystemEvents.PowerModeChanged += OnPowerChange;
             Application.ApplicationExit += new EventHandler(ApplicationExit);
@@ -98,10 +98,12 @@ namespace Hibernator
         {
             number = !timerinvert ? number : minutesOff - number;
             // Create a bitmap and draw text on it
-            Bitmap bitmap = new Bitmap(32, 32);
+            Bitmap bitmap = new Bitmap(16, 16);
             Graphics graphics = Graphics.FromImage(bitmap);
-            string str = number > 9 ? "" + number : " " + number;
-            graphics.DrawString(str, new Font("System", 20, FontStyle.Regular), Brushes.White, 0, 0);
+            graphics.Clear(Color.Transparent);
+            graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
+            string str = number > 9 ? "" + number : " " + number;          
+            graphics.DrawString(str, new Font("System", 16, FontStyle.Regular, GraphicsUnit.Pixel), Brushes.White, -4, -2);
             // Convert the bitmap with text to an Icon
             Icon icon = Icon.FromHandle(bitmap.GetHicon());
             notifyIcon.Icon = icon;
