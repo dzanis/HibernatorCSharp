@@ -13,8 +13,7 @@ namespace Hibernator
     {
         
         public byte minutesOff = 30;//через сколько минут выключить, от 1 до 99 минут
-        public bool timerinvert = false;//сколько минут нет активности или сколько осталось до гибернации
-        public bool PowerModesResume = false;// будет true при выходе из гибернации
+        public bool timerinvert = false;//сколько минут нет активности или сколько осталось до гибернации    
 
         string textInfo = "При бездействии пользователя,\n гибернизация начнётся через {0} мин \nСвернуть для фоновой работы. \nВ трее индикация бездействия в минутах\n";
         Hibernator hibernator;
@@ -22,7 +21,7 @@ namespace Hibernator
         public MainForm()
         {
             InitializeComponent();
-            Text = "Hibernator 2019.02.13";
+            Text = "Hibernator 2019.02.20";
             this.StartPosition = FormStartPosition.CenterScreen;
             SystemEvents.PowerModeChanged += OnPowerChange;
             Application.ApplicationExit += new EventHandler(ApplicationExit);
@@ -145,7 +144,6 @@ namespace Hibernator
                 case PowerModes.Resume:
                     Log.Write("PowerModes.Resume");
                     //MessageBox.Show("PowerModes.Resume");
-                    PowerModesResume = true;
                     hibernator.Start();                   
                     break;
                 case PowerModes.Suspend:
@@ -165,6 +163,7 @@ namespace Hibernator
         private Thread myThread;
         private MainForm main;
         private bool run;
+        public bool autoHibernate;//будет true при автоматическом входе в гибернацию
 
         public Hibernator(MainForm main)
         {
@@ -173,7 +172,7 @@ namespace Hibernator
 
         public void Start()
         {
-            run = true;
+            run = true;         
             myThread = new Thread(thread_func); //Создаем новый объект потока (Thread)
             myThread.IsBackground = true;// что-бы поток закрывался вместе с приложением
             myThread.Start(); //запускаем поток
@@ -231,7 +230,7 @@ namespace Hibernator
                 for (int i = 30; i > 0; i--) // отсчёт 30 секунд
                 {
                     if ( ((GetLastInputTime() / 60) < main.minutesOff) &&  // если была активность мышки или клавы
-                        !main.PowerModesResume) // при выходе из гибернации отмена только нажатием на кнопку 
+                        !autoHibernate) // при выходе из гибернации отмена только нажатием на кнопку 
                         SendMessageW(hwndMsgBox, WM_COMMAND, (IntPtr)(IDNO | (BN_CLICKED << 16)), hwndButton); //то симулируем нажатие "Нет"
                     string title_text = "HibernateConfirm " + i;
                     SetWindowText(hwndMsgBox, title_text);
@@ -254,7 +253,7 @@ namespace Hibernator
                 int lastInputTime = GetLastInputTime() / 60;// convert sec to min
                 main.notyfyiconUpdate(lastInputTime);//обновление иконки в трее
                 // form1.PowerModesResume нужен что-бы запустить таймер  выключения при выходе из гибернации
-                if (lastInputTime >= main.minutesOff || main.PowerModesResume)
+                if (lastInputTime >= main.minutesOff || autoHibernate)
                 {
                     Log.Write("lastInputTime >= main.minutesOff");
                     Thread thread = new Thread(message_thread_func);
@@ -268,11 +267,12 @@ namespace Hibernator
                         Log.Write("HibernateConfirm != DialogResult.Yes");
                         thread.Abort();
                         thread = null;
-                        main.PowerModesResume = false;
+                        autoHibernate = false;
                         fullWindow.Dispose();
                         continue;
-                    }
+                    }                
                     Log.Write("HibernateConfirm == DialogResult.Yes");
+                    autoHibernate = true;//если уход автоматически в гибернацию
                     fullWindow.Dispose();
                     thread.Abort();
                     thread = null;
