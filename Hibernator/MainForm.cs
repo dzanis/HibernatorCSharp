@@ -11,7 +11,7 @@ namespace Hibernator
 
     public partial class MainForm : Form
     {
-        // константы настроек по умолчанию
+        // константы настроек по умолчанию       
         const byte minutesOff = 30;//через сколько минут выключить, от 1 до 99 минут
         const bool timerinvert = false;//сколько минут нет активности или сколько осталось до гибернации    
         const bool logging = false;// нужно ли записывать логи
@@ -371,13 +371,20 @@ namespace Hibernator
         {
             if(File.Exists("settings.dat"))
             {
-                using (BinaryReader reader = new BinaryReader(File.Open("settings.dat", FileMode.Open)))
+                try
                 {
-                    minutesOff = reader.ReadByte();
-                    timerinvert = reader.ReadBoolean();
-                    logging = reader.ReadBoolean();
+                 using (BinaryReader reader = new BinaryReader(File.Open("settings.dat", FileMode.Open)))
+                    {                    
+                        minutesOff = reader.ReadByte();
+                        timerinvert = reader.ReadBoolean();
+                        logging = reader.ReadBoolean();
+                        return true;
+                    }
                 }
-                return true;
+                catch (Exception ex)
+                {
+                    Log.Write("Settings load error ("+ex.Message+")  Rewrite settings");
+                }                              
             }
             return false;
         }
