@@ -230,7 +230,7 @@ namespace Hibernator
                 for (int i = 30; i > 0; i--) // отсчёт 30 секунд
                 {
                     if ( ((GetLastInputTime() / 60) < main.minutesOff) &&  // если была активность мышки или клавы
-                        !autoHibernate) // при выходе из гибернации отмена только нажатием на кнопку 
+                        !autoHibernate) //что-бы не закрылся таймер после пробуждения из гибернации, но отмена сработает только нажатием на кнопку "Отмена"
                         SendMessageW(hwndMsgBox, WM_COMMAND, (IntPtr)(IDNO | (BN_CLICKED << 16)), hwndButton); //то симулируем нажатие "Нет"
                     string title_text = "HibernateConfirm " + i;
                     SetWindowText(hwndMsgBox, title_text);
@@ -252,7 +252,8 @@ namespace Hibernator
             {
                 int lastInputTime = GetLastInputTime() / 60;// convert sec to min
                 main.notyfyiconUpdate(lastInputTime);//обновление иконки в трее
-                // form1.PowerModesResume нужен что-бы запустить таймер  выключения при выходе из гибернации
+                // запустить HibernateConfirm если последняя активность превысила minutesOff
+                // autoHibernate нужен что-бы запустить HibernateConfirm при выходе из гибернации
                 if (lastInputTime >= main.minutesOff || autoHibernate)
                 {
                     Log.Write("lastInputTime >= main.minutesOff");
