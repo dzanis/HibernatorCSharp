@@ -38,7 +38,6 @@ namespace Hibernator
             else
             {   // если не первый старт приложения то запуск в свёрнутом виде
                 this.WindowState = FormWindowState.Minimized;
-                this.ShowInTaskbar = false;
             }
 
             Log.Write("MainForm");
@@ -55,7 +54,7 @@ namespace Hibernator
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
-            {
+            {   // диалог подтверждение выхода
                 if (MessageBox.Show("Do you really want to exit?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Information) != DialogResult.Yes)
                 {
                 e.Cancel = true;
@@ -63,7 +62,8 @@ namespace Hibernator
             }
 
         private void MainForm_Resize(object sender, EventArgs e)
-            {           
+            {    
+                // если свернули в трей
                 if (this.WindowState == FormWindowState.Minimized)
                 {
                     Hide();
@@ -74,8 +74,9 @@ namespace Hibernator
 
         private void button1_Click(object sender, EventArgs e)
         {
+            // открываем диалог с настройками
             SettingsForm settings = new SettingsForm();
-            settings.ShowDialog();//текушяя форма будет неактивной до тех пор, пока не закрыть форму settings
+            settings.ShowDialog();//текушая форма будет неактивной до тех пор, пока не закрыть форму settings
             
         }
 
@@ -120,7 +121,7 @@ namespace Hibernator
                 (lastInputTime - prevlastInputTime >= 1))
             {
                 setIconNumber(lastInputTime);
-                Console.WriteLine("lastInputTime == " + lastInputTime);
+                //Console.WriteLine("lastInputTime == " + lastInputTime);
             }
             prevlastInputTime = lastInputTime;
         }
@@ -229,9 +230,16 @@ namespace Hibernator
                 // длбавляем обратный отсчёт на титле
                 for (int i = 30; i > 0; i--) // отсчёт 30 секунд
                 {
-                    if ( ((GetLastInputTime() / 60) < Settings.minutesOff) &&  // если была активность мышки или клавы
-                        !autoHibernate) //что-бы не закрылся таймер после пробуждения из гибернации, но отмена сработает только нажатием на кнопку "Отмена"
-                        SendMessageW(hwndMsgBox, WM_COMMAND, (IntPtr)(IDNO | (BN_CLICKED << 16)), hwndButton); //то симулируем нажатие "Нет"
+                    int lastInputTime = GetLastInputTime() / 60;// convert sec to min
+                    if ( lastInputTime < Settings.minutesOff)  // если была активность мышки или клавы
+                    {
+                        Log.Write("Cancel because mouse move or keypressed");
+                        if (!autoHibernate)//что-бы не закрылся таймер после пробуждения из гибернации, но отмена сработает только нажатием на кнопку "Отмена"
+                        {
+                            SendMessageW(hwndMsgBox, WM_COMMAND, (IntPtr)(IDNO | (BN_CLICKED << 16)), hwndButton); //то симулируем нажатие "Нет"
+                        }
+                    }
+                                               
                     string title_text = "HibernateConfirm " + i;
                     SetWindowText(hwndMsgBox, title_text);
                     Thread.Sleep(1000);
@@ -256,6 +264,9 @@ namespace Hibernator
                 // autoHibernate нужен что-бы запустить HibernateConfirm при выходе из гибернации
                 if (lastInputTime >= Settings.minutesOff || autoHibernate)
                 {
+                    if(autoHibernate)
+                        Log.Write("autoHibernate");
+                    else
                     Log.Write("lastInputTime >= main.minutesOff");
                     Thread thread = new Thread(message_thread_func);
                     thread.IsBackground = true;
@@ -263,13 +274,13 @@ namespace Hibernator
                     Form fullWindow = CreateFullscreenWindow();// белое окно на весь экран
                     if (MessageBox.Show("Move mouse or press any key \nto interrupt the hibernation ",
                         "HibernateConfirm", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2,
-                        MessageBoxOptions.ServiceNotification) != DialogResult.Yes)
+                        MessageBoxOptions.ServiceNotification) == DialogResult.No)
                     {
-                        Log.Write("HibernateConfirm != DialogResult.Yes");
-                        thread.Abort();
-                        thread = null;
+                        Log.Write("HibernateConfirm == DialogResult.No");
                         autoHibernate = false;
                         fullWindow.Dispose();
+                        thread.Abort();
+                        thread = null;                                             
                         continue;
                     }                
                     Log.Write("HibernateConfirm == DialogResult.Yes");
@@ -278,8 +289,7 @@ namespace Hibernator
                     thread.Abort();
                     thread = null;
                     run = false;
-                    Thread.Sleep(1000);
-                    System.Diagnostics.Process.Start("CMD.exe", "/C shutdown -h");
+                     System.Diagnostics.Process.Start("CMD.exe", "/C shutdown -h");
                     //System.Diagnostics.Process.Start("CMD.exe", "/C "); // test
 
                 }
