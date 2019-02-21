@@ -11,7 +11,7 @@ namespace Hibernator
 
     public partial class MainForm : Form
     {
-        const string VERSION = "21.02.2019";// версия (не забывать обновить)
+        const string VERSION = "21.02.2019(test)";// версия (не забывать обновить)
         // константы настроек по умолчанию       
         const byte minutesOff = 30;//через сколько минут выключить, от 1 до 99 минут
         const bool timerinvert = false;//сколько минут нет активности или сколько осталось до гибернации    
@@ -234,7 +234,7 @@ namespace Hibernator
                     if ( lastInputTime < Settings.minutesOff)  // если была активность мышки или клавы
                     {
                         Log.Write("Cancel because mouse move or keypressed");
-                        if (!autoHibernate)//что-бы не закрылся таймер после пробуждения из гибернации, но отмена сработает только нажатием на кнопку "Отмена"
+                        //if (!autoHibernate)//что-бы не закрылся таймер после пробуждения из гибернации, но отмена сработает только нажатием на кнопку "Отмена"
                         {
                             SendMessageW(hwndMsgBox, WM_COMMAND, (IntPtr)(IDNO | (BN_CLICKED << 16)), hwndButton); //то симулируем нажатие "Нет"
                         }
