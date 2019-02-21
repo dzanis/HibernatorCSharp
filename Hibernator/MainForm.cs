@@ -11,6 +11,7 @@ namespace Hibernator
 
     public partial class MainForm : Form
     {
+        const string VERSION = "21.02.2019";// версия (не забывать обновить)
         // константы настроек по умолчанию       
         const byte minutesOff = 30;//через сколько минут выключить, от 1 до 99 минут
         const bool timerinvert = false;//сколько минут нет активности или сколько осталось до гибернации    
@@ -22,7 +23,7 @@ namespace Hibernator
         public MainForm()
         {
             InitializeComponent();
-            Text = "Hibernator 2019.02.21";
+            this.Text = "Hibernator " + VERSION;
             this.StartPosition = FormStartPosition.CenterScreen;
             SystemEvents.PowerModeChanged += OnPowerChange;
             Application.ApplicationExit += new EventHandler(ApplicationExit);
@@ -351,6 +352,7 @@ namespace Hibernator
 
     public class Settings
     {
+        const string VERSION = "21.02.2019";// версия настроек (не забывать обновить если менялись)
         public static byte minutesOff;//через сколько минут выключить, от 1 до 99 минут
         public static bool timerinvert;//сколько минут нет активности или сколько осталось до гибернации
         public static bool logging;// нужно ли записывать логи
@@ -360,9 +362,11 @@ namespace Hibernator
         {
             using (BinaryWriter writer = new BinaryWriter(File.Open("settings.dat", FileMode.OpenOrCreate)))
             {
+                writer.Write(VERSION);
                 writer.Write(minutesOff);
                 writer.Write(timerinvert);
                 writer.Write(logging);
+                Log.Write("Settings saved");
             }
         }
 
@@ -374,7 +378,13 @@ namespace Hibernator
                 try
                 {
                  using (BinaryReader reader = new BinaryReader(File.Open("settings.dat", FileMode.Open)))
-                    {                    
+                    {
+                        if (VERSION != reader.ReadString())// если обновилась версия
+                        {
+                            Log.Write("Settings update version to "+ VERSION);
+                            return false;
+                        }
+                             
                         minutesOff = reader.ReadByte();
                         timerinvert = reader.ReadBoolean();
                         logging = reader.ReadBoolean();
@@ -383,7 +393,7 @@ namespace Hibernator
                 }
                 catch (Exception ex)
                 {
-                    Log.Write("Settings load error ("+ex.Message+")  Rewrite settings");
+                    Log.Write("Settings load error "+ex.Message);
                 }                              
             }
             return false;
