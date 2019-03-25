@@ -11,7 +11,7 @@ namespace Hibernator
 
     public partial class MainForm : Form
     {
-        const string VERSION = "21.02.2019(test)";// версия (не забывать обновить)
+        const string VERSION = "25.03.2019";// версия (не забывать обновить)
         // константы настроек по умолчанию       
         const byte minutesOff = 30;//через сколько минут выключить, от 1 до 99 минут
         const bool timerinvert = false;//сколько минут нет активности или сколько осталось до гибернации    
@@ -54,11 +54,16 @@ namespace Hibernator
         }
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
+            {   
+            // если выход нажал пользователь
+            if (e.CloseReason == CloseReason.UserClosing)
             {   // диалог подтверждение выхода
                 if (MessageBox.Show("Do you really want to exit?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Information) != DialogResult.Yes)
                 {
-                e.Cancel = true;
-                }       
+                    e.Cancel = true;
+                }
+            }
+                  
             }
 
         private void MainForm_Resize(object sender, EventArgs e)
