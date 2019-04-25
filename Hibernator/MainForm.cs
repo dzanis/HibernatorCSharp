@@ -11,7 +11,7 @@ namespace Hibernator
 
     public partial class MainForm : Form
     {
-        const string VERSION = "25.03.2019";// версия (не забывать обновить)
+        const string VERSION = "25.04.2019";// версия (не забывать обновить)
         // константы настроек по умолчанию       
         const byte minutesOff = 30;//через сколько минут выключить, от 1 до 99 минут
         const bool timerinvert = false;//сколько минут нет активности или сколько осталось до гибернации    
@@ -78,7 +78,7 @@ namespace Hibernator
             }
 
         private void button1_Click(object sender, EventArgs e)
-        {
+        {          
             // открываем диалог с настройками
             SettingsForm settings = new SettingsForm();
             settings.ShowDialog();//текушая форма будет неактивной до тех пор, пока не закрыть форму settings
@@ -150,7 +150,8 @@ namespace Hibernator
                 case PowerModes.Resume:
                     Log.Write("PowerModes.Resume");
                     //MessageBox.Show("PowerModes.Resume");
-                    hibernator.Start();                   
+                    hibernator.Start();
+                    System.Diagnostics.Process.Start("run.bat");
                     break;
                 case PowerModes.Suspend:
                     Log.Write("PowerModes.Suspend");
